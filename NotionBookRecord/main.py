@@ -1,8 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 import requests
 import json
 from datetime import datetime
@@ -10,54 +5,65 @@ from datetime import datetime
 
 class AutoBookRecord:
     def __init__(self):
-        self.input_title = None
         self.aladin = Aladin()
-        self.book = None
         self.notion = Notion()
-        self.get_target_book_title()
+        self.book = None
+        self.execute_auto_book_record()
+
+    def execute_auto_book_record(self):
+        title = self.get_target_book_title()
+
+        if self.is_not_valid(title):
+            self.reset()
+            return
+        book = self.get_book_info(title)
+        self.set_book_configuration(book, title)
+
+        result = self.post_book_info_to_notion()
+        self.notify_result_to_user(result)
+
+    def reset(self):
+        self.book = None
+        self.execute_auto_book_record()
 
     def get_target_book_title(self):
         title = input('\nplease enter book title: ')
-        self.input_title = title
-        search_result = self.return_book_search(title)
-        self.set_book_configuration(search_result[0])
         return title
 
-    def return_book_search(self, title):
-        json_info = self.request_book_info(title)
-        return json_info
+    def get_book_info(self, title):
+        response = self.request_book_info(title)
+        result = self.trim_response_to_json(response)
+        return result[0]
 
     def request_book_info(self, title):
         params = {'TTBKey': self.aladin.ttb_key, 'Query': title, 'Output': 'JS', 'Version': 20131101, 'Cover': 'Big'}
         response = requests.get(url=self.aladin.request_url, params=params)
-        # print(json.loads(response.text)['item'])
-        return self.trim_response_to_json(response)
+        return response
 
     def trim_response_to_json(self, raw_response):
         return json.loads(raw_response.text)['item']
 
-    def set_book_configuration(self, r):
-        if self.input_title not in r['title']:
+    def set_book_configuration(self, book, title):
+        if title not in book['title']:
             print("no exact match")
-            self.get_target_book_title()
+            self.reset()
             return
 
-        # print(type(r))
-        # print(len(r))
-        # print(r)
-        category_str = r['categoryName']
+        b = book
+        category_str = b['categoryName']
         categories = category_str.split('>')[-2:]
-        # print(categories)
         self.book = Book(
-            title=r['title'],
-            author=r['author'],
-            publisher=r['publisher'],
-            image=r['cover'],
-            info_url=r['link'],
+            title=b['title'],
+            author=b['author'],
+            publisher=b['publisher'],
+            image=b['cover'],
+            info_url=b['link'],
             category=categories
         )
-        # print(self.book.title, self.book.category, self.book.image, self.book.author, self.book.info_url)
-        self.request_notion_database_post()
+
+    def post_book_info_to_notion(self):
+        result = self.request_notion_database_post()
+        return result
 
     def request_notion_database_post(self):
         if self.book is None:
@@ -66,11 +72,8 @@ class AutoBookRecord:
         request_header = {"Authorization": "Bearer " + self.notion.authorization_key, "Content-Type": "application/json", "Notion-Version": "2021-08-16"}
         request_body = self.trim_book_info_to_json()
         response = requests.post(url=self.notion.request_url, data=request_body, headers=request_header)
-        # print(request_body)
-        # print(response.text)
-        # print(response.content)
-        print("successfully done! check your notion :)")
-        self.get_target_book_title()
+        # TODO
+        return True
 
     def trim_book_info_to_json(self):
         data = {}
@@ -92,6 +95,18 @@ class AutoBookRecord:
                 "출판사": {"rich_text": [{"type": "text", "text": {"content": self.book.publisher}}]},
                 "책 정보(알라딘)": {"url": self.book.info_url},
                 "읽은 날짜": {"date": {"start": datetime.now().isoformat()[:10], "end": None}}}
+
+    def is_not_valid(self, input):
+        if input is None or type(input) != str or input == "":
+            return True
+        return False
+
+    def notify_result_to_user(self, result):
+        if result:
+            print("Successfully done! Please check your notion :)")
+        else:
+            print("Something got wrong. Please try again.")
+        self.reset()
 
 
 class Book:
