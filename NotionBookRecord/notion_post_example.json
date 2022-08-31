@@ -1,0 +1,59 @@
+{
+    "parent": { "database_id": "8c46b8f8ad9d4dd3a299abdf84b5f98f" },
+  	"cover": {
+  		"type": "external",
+    	"external": {
+    		"url": "https://image.aladin.co.kr/product/29869/69/cover/k372838620_1.jpg"
+    	}
+  	},
+    "properties": {
+      "title": {
+        "title": [
+          {
+            "text": {
+              "content": "책 제목"
+            }
+          }
+        ]
+      },
+      "분류": {
+          "multi_select": [
+              {
+                  "name": "인문학"
+              },
+              {
+                  "name": "요상한 오타"
+              }
+          ]
+      },
+      "지은이": {
+          "rich_text": [
+              {
+                  "type": "text",
+                  "text": {
+                      "content": "지우"
+                  }
+              }
+          ]
+      },
+      "출판사": {
+          "rich_text": [
+              {
+                  "type": "text",
+                  "text": {
+                      "content": "출판사"
+                  }
+              }
+          ]
+      },
+      "책 정보(알라딘)": {
+          "url": "https://aladin.co.kr/home/welcome.aspx"
+      },
+      "읽은 날짜": {
+          "date": {
+              "start": "2022-07-07",
+              "end": null
+          }
+      }
+    }
+  }
