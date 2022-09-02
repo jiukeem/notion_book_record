@@ -50,16 +50,31 @@ class AutoBookRecord:
             return
 
         b = book
-        category_str = b['categoryName']
-        categories = category_str.split('>')[-2:]
+        categories = self.parse_category(b['categoryName'])
+        authors = self.parse_author(b['author'])
+
         self.book = Book(
             title=b['title'],
-            author=b['author'],
+            author=authors,
             publisher=b['publisher'],
             image=b['cover'],
             info_url=b['link'],
             category=categories
         )
+
+    def parse_category(self, category_str):
+        categories = category_str.split('>')
+        if len(categories) >= 2:
+            categories = categories[1:]
+        return categories
+
+    def parse_author(self, author_str):
+        author_list = []
+        authors = author_str.split(', ')
+        for author in authors:
+            if '옮긴이' not in author:
+                author_list.append(author.replace(' (지은이)', ''))
+        return ', '.join(author_list)
 
     def post_book_info_to_notion(self):
         result = self.request_notion_database_post()
@@ -90,7 +105,7 @@ class AutoBookRecord:
 
     def build_properties_part_of_body(self):
         return {"title": {"title": [{"text": {"content": self.book.title}}]},
-                "분류": {"multi_select": [{"name": self.book.category[-1]}, {"name": self.book.category[-2]}]},
+                "분류": {"multi_select": [{"name": c} for c in self.book.category]},
                 "지은이": {"rich_text": [{"type": "text", "text": {"content": self.book.author}}]},
                 "출판사": {"rich_text": [{"type": "text", "text": {"content": self.book.publisher}}]},
                 "책 정보(알라딘)": {"url": self.book.info_url},
