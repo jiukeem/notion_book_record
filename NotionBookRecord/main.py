@@ -33,6 +33,11 @@ class AutoBookRecord:
     def get_book_info(self, title):
         response = self.request_book_info(title)
         result = self.trim_response_to_json(response)
+        if len(result) < 1:
+            self.reset()
+            return
+        # if result has no element, it means there's no matching result
+        print(result[0])
         return result[0]
 
     def request_book_info(self, title):
@@ -87,8 +92,11 @@ class AutoBookRecord:
         request_header = {"Authorization": "Bearer " + self.notion.authorization_key, "Content-Type": "application/json", "Notion-Version": "2021-08-16"}
         request_body = self.trim_book_info_to_json()
         response = requests.post(url=self.notion.request_url, data=request_body, headers=request_header)
-        # TODO
-        return True
+        print(str(response))
+        print(response.text)
+        if '200' in str(response):
+            return True
+        return False
 
     def trim_book_info_to_json(self):
         data = {}
