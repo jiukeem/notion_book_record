@@ -16,7 +16,9 @@ class AutoBookRecord:
         if self.is_not_valid(title):
             self.reset()
             return
-        book = self.get_book_info(title)
+        candidate_book_list = self.get_book_info_list(title)
+        chosen_book_index_num = self.request_user_book_choice(candidate_book_list)
+        book = candidate_book_list[chosen_book_index_num]
         self.set_book_configuration(book, title)
 
         result = self.post_book_info_to_notion()
@@ -30,15 +32,47 @@ class AutoBookRecord:
         title = input('\nplease enter book title: ')
         return title
 
-    def get_book_info(self, title):
+    def get_book_info_list(self, title):
         response = self.request_book_info(title)
         result = self.trim_response_to_json(response)
         if len(result) < 1:
             self.reset()
             return
         # if result has no element, it means there's no matching result
-        print(result[0])
-        return result[0]
+        return result
+
+    def request_user_book_choice(self, candidate_book_list):
+        candidate_book_list_for_print = []
+        for i, book in enumerate(candidate_book_list):
+            title = book['title']
+            author = book['author']
+            publisher = book['publisher']
+            pub_date = book['pubDate']
+
+            candidate_book_list_for_print.append(f'{i + 1}) title: {title}\n   author: {author}\n   publisher: {publisher}\n   pubDate: {pub_date}')
+
+        # ------------------------ printed for user ------------------------
+        print('\nBelow books were found according to your input\n')
+        for book in candidate_book_list_for_print:
+            print(book)
+        chosen_book_index_str = input('\nPlease enter the number of the book you want to add: ')
+        # ------------------------ printed for user ------------------------
+
+        chosen_book_index_num = 0
+        while chosen_book_index_num < 1:
+            # check only integer was entered
+            try:
+                chosen_book_index_num = int(chosen_book_index_str)
+            except ValueError:
+                chosen_book_index_str = input('Enter proper number(1 ~ 10) only: ')
+
+            # check proper range of integer was entered
+            if not 0 < chosen_book_index_num < 11:
+                chosen_book_index_num = 0
+                chosen_book_index_str = input('Enter proper number(1 ~ 10) only: ')
+                continue
+
+        return chosen_book_index_num - 1
 
     def request_book_info(self, title):
         params = {'TTBKey': self.aladin.ttb_key, 'Query': title, 'Output': 'JS', 'Version': 20131101, 'Cover': 'Big'}
@@ -92,8 +126,6 @@ class AutoBookRecord:
         request_header = {"Authorization": "Bearer " + self.notion.authorization_key, "Content-Type": "application/json", "Notion-Version": "2021-08-16"}
         request_body = self.trim_book_info_to_json()
         response = requests.post(url=self.notion.request_url, data=request_body, headers=request_header)
-        print(str(response))
-        print(response.text)
         if '200' in str(response):
             return True
         return False
@@ -126,7 +158,7 @@ class AutoBookRecord:
 
     def notify_result_to_user(self, result):
         if result:
-            print("Successfully done! Please check your notion :)")
+            print("Successfully done! It might take few seconds.\nPlease check your notion :)")
         else:
             print("Something got wrong. Please try again.")
         self.reset()
