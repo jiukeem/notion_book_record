@@ -19,7 +19,7 @@ class AutoBookRecord:
         candidate_book_list = self.get_book_info_list(title)
         chosen_book_index_num = self.request_user_book_choice(candidate_book_list)
         book = candidate_book_list[chosen_book_index_num]
-        self.set_book_configuration(book, title)
+        self.set_book_configuration(book)
 
         result = self.post_book_info_to_notion()
         self.notify_result_to_user(result)
@@ -83,12 +83,7 @@ class AutoBookRecord:
     def trim_response_to_json(self, raw_response):
         return json.loads(raw_response.text)['item']
 
-    def set_book_configuration(self, book, title):
-        if title not in book['title']:
-            print("no exact match")
-            self.reset()
-            return
-
+    def set_book_configuration(self, book):
         b = book
         categories = self.parse_category(b['categoryName'])
         authors = self.parse_author(b['author'])
