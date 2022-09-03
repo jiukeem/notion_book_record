@@ -36,6 +36,7 @@ class AutoBookRecord:
         response = self.request_book_info(title)
         result = self.trim_response_to_json(response)
         if len(result) < 1:
+            print('There\'s no matching result.')
             self.reset()
             return
         # if result has no element, it means there's no matching result
