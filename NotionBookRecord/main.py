@@ -64,12 +64,12 @@ class AutoBookRecord:
             try:
                 chosen_book_index_num = int(chosen_book_index_str)
             except ValueError:
-                chosen_book_index_str = input('Enter proper number(1 ~ 10) only: ')
+                chosen_book_index_str = input(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
 
             # check proper range of integer was entered
             if not 0 < chosen_book_index_num < 11:
                 chosen_book_index_num = 0
-                chosen_book_index_str = input('Enter proper number(1 ~ 10) only: ')
+                chosen_book_index_str = input(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
                 continue
 
         return chosen_book_index_num - 1
