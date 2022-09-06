@@ -56,22 +56,20 @@ class AutoBookRecord:
         print('\nBelow books were found according to your input\n')
         for book in candidate_book_list_for_print:
             print(book)
-        chosen_book_index_str = input('\nPlease enter the number of the book you want to add: ')
+        chosen_book_index_str = input('Please enter the number of the book you want to add: ')
+        print('\nYou can press \'b\' to go back.')
         # ------------------------ printed for user ------------------------
 
         chosen_book_index_num = 0
         while chosen_book_index_num < 1:
-            # check only integer was entered
-            try:
-                chosen_book_index_num = int(chosen_book_index_str)
-            except ValueError:
-                chosen_book_index_str = input(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
+            if chosen_book_index_str == 'b':
+                self.reset()
+                return
 
-            # check proper range of integer was entered
-            if not 0 < chosen_book_index_num < 11:
-                chosen_book_index_num = 0
+            if chosen_book_index_str in list(map(str, range(1, len(candidate_book_list) + 1))):
+                chosen_book_index_num = int(chosen_book_index_str)
+            else:
                 chosen_book_index_str = input(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
-                continue
 
         return chosen_book_index_num - 1
 
