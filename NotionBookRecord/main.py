@@ -56,8 +56,8 @@ class AutoBookRecord:
         print('\nBelow books were found according to your input\n')
         for book in candidate_book_list_for_print:
             print(book)
-        chosen_book_index_str = input('Please enter the number of the book you want to add: ')
         print('\nYou can press \'b\' to go back.')
+        chosen_book_index_str = input('Please enter the number of the book you want to add: ')
         # ------------------------ printed for user ------------------------
 
         chosen_book_index_num = 0
