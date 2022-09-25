@@ -50,7 +50,8 @@ class AutoBookRecord:
             publisher = book['publisher']
             pub_date = book['pubDate']
 
-            candidate_book_list_for_print.append(f'{i + 1}) title: {title}\n   author: {author}\n   publisher: {publisher}\n   pubDate: {pub_date}')
+            candidate_book_list_for_print.append(
+                f'{i + 1}) title: {title}\n   author: {author}\n   publisher: {publisher}\n   pubDate: {pub_date}')
 
         # ------------------------ printed for user ------------------------
         print('\nBelow books were found according to your input\n')
@@ -85,11 +86,15 @@ class AutoBookRecord:
         b = book
         aladin_category = self.parse_category(b['categoryName'])
         category = self.get_correspondence_kyobo_category(aladin_category)
+        p = self.parse_author_w_translator(b['author'])
+        authors = p['authors']
+        translator = p['translator']
 
         self.book = Book(
             title=b['title'],
             author=authors,
             publisher=b['publisher'],
+            translator=translator,
             image=b['cover'],
             info_url=b['link'],
             category=category
@@ -101,13 +106,17 @@ class AutoBookRecord:
             return ''
         return categories[1]
 
-    def parse_author(self, author_str):
+    def parse_author_w_translator(self, author_str):
         author_list = []
+        translator = '-'
         authors = author_str.split(', ')
         for author in authors:
             if '옮긴이' not in author:
                 author_list.append(author.replace(' (지은이)', ''))
-        return ', '.join(author_list)
+            else:
+                translator = author.replace('(옮긴이)', '')
+
+        return {'authors': ''.join(author_list), 'translator': translator}
 
     def post_book_info_to_notion(self):
         result = self.request_notion_database_post()
@@ -117,7 +126,8 @@ class AutoBookRecord:
         if self.book is None:
             return
 
-        request_header = {"Authorization": "Bearer " + self.notion.authorization_key, "Content-Type": "application/json", "Notion-Version": "2021-08-16"}
+        request_header = {"Authorization": "Bearer " + self.notion.authorization_key,
+                          "Content-Type": "application/json", "Notion-Version": "2021-08-16"}
         request_body = self.trim_book_info_to_json()
         response = requests.post(url=self.notion.request_url, data=request_body, headers=request_header)
         if '200' in str(response):
@@ -142,6 +152,7 @@ class AutoBookRecord:
                 "대분류": {"select": {"name": self.book.category}},
                 "지은이": {"rich_text": [{"type": "text", "text": {"content": self.book.author}}]},
                 "출판사": {"rich_text": [{"type": "text", "text": {"content": self.book.publisher}}]},
+                "옮긴이": {"rich_text": [{"type": "text", "text": {"content": self.book.translator}}]},
                 "책 정보(알라딘)": {"url": self.book.info_url},
                 "읽은 날짜": {"date": {"start": datetime.now().isoformat()[:10], "end": None}}}
 
@@ -194,10 +205,11 @@ class AutoBookRecord:
 
 
 class Book:
-    def __init__(self, title, author, publisher, image, info_url, category):
+    def __init__(self, title, author, publisher, translator, image, info_url, category):
         self.title = title
         self.author = author
         self.publisher = publisher
+        self.translator = translator
         self.image = image
         self.info_url = info_url
         self.category = category
