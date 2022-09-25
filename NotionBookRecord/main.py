@@ -83,8 +83,8 @@ class AutoBookRecord:
 
     def set_book_configuration(self, book):
         b = book
-        categories = self.parse_category(b['categoryName'])
-        authors = self.parse_author(b['author'])
+        aladin_category = self.parse_category(b['categoryName'])
+        category = self.get_correspondence_kyobo_category(aladin_category)
 
         self.book = Book(
             title=b['title'],
@@ -92,14 +92,14 @@ class AutoBookRecord:
             publisher=b['publisher'],
             image=b['cover'],
             info_url=b['link'],
-            category=categories
+            category=category
         )
 
     def parse_category(self, category_str):
         categories = category_str.split('>')
-        if len(categories) >= 2:
-            categories = categories[1:]
-        return categories
+        if len(categories) < 2:
+            return ''
+        return categories[1]
 
     def parse_author(self, author_str):
         author_list = []
@@ -139,7 +139,7 @@ class AutoBookRecord:
 
     def build_properties_part_of_body(self):
         return {"title": {"title": [{"text": {"content": self.book.title}}]},
-                "분류": {"multi_select": [{"name": c} for c in self.book.category]},
+                "대분류": {"select": {"name": self.book.category}},
                 "지은이": {"rich_text": [{"type": "text", "text": {"content": self.book.author}}]},
                 "출판사": {"rich_text": [{"type": "text", "text": {"content": self.book.publisher}}]},
                 "책 정보(알라딘)": {"url": self.book.info_url},
@@ -156,6 +156,41 @@ class AutoBookRecord:
         else:
             print("Something got wrong. Please try again.")
         self.reset()
+
+    def get_correspondence_kyobo_category(self, category):
+        aladin_to_kyobo = {'가정/요리/뷰티': '기타',
+                           '건강/취미/레저': '기타',
+                           '경제경영': '경제/경영',
+                           '고전': '기타',
+                           '과학': '과학',
+                           '달력/기타': '기타',
+                           '대학교재': '기타',
+                           '만화': '기타',
+                           '사회과학': '정치/사회',
+                           '소설/시/희곡': '소설',
+                           '에세이': '에세이',
+                           '수험서/자격증': '기타',
+                           '공무원 수험서': '기타',
+                           '어린이': '기타',
+                           '유아': '기타',
+                           '여행': '기타',
+                           '역사': '역사/문화',
+                           '예술/대중문화': '예술/대중문화',
+                           '외국어': '기타',
+                           '인문학': '인문',
+                           '자기계발': '자기계발',
+                           '잡지': '잡지',
+                           '장르소설': '소설',
+                           '전집/중고전집': '기타',
+                           '종교/역학': '종교',
+                           '좋은부모': '기타',
+                           '청소년': '기타',
+                           '초등참고서': '기타',
+                           '중학교참고서': '기타',
+                           '고등학교참고서': '기타',
+                           '컴퓨터/모바일': '컴퓨터/IT',
+                           }
+        return aladin_to_kyobo[category]
 
 
 class Book:
