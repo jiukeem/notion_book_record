@@ -108,15 +108,15 @@ class AutoBookRecord:
 
     def parse_author_w_translator(self, author_str):
         author_list = []
-        translator = '-'
+        default_translator = '-'
         authors = author_str.split(', ')
         for author in authors:
             if '옮긴이' not in author:
                 author_list.append(author.replace(' (지은이)', ''))
             else:
-                translator = author.replace('(옮긴이)', '')
+                default_translator = author.replace('(옮긴이)', '')
 
-        return {'authors': ', '.join(author_list), 'translator': translator}
+        return {'authors': ', '.join(author_list), 'translator': default_translator}
 
     def post_book_info_to_notion(self):
         result = self.request_notion_database_post()
