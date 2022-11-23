@@ -172,8 +172,8 @@ class AutoBookRecord:
         self.reset()
 
     def get_correspondence_kyobo_category(self, category):
-        aladin_to_kyobo = {'가정/요리/뷰티': '기타',
-                           '건강/취미/레저': '기타',
+        aladin_to_kyobo = {'요리/살림': '기타',
+                           '건강/취미': '기타',
                            '경제경영': '경제/경영',
                            '고전': '기타',
                            '과학': '과학',
@@ -190,7 +190,7 @@ class AutoBookRecord:
                            '여행': '기타',
                            '역사': '역사/문화',
                            '예술/대중문화': '예술/대중문화',
-                           '외국어': '기타',
+                           '외국어': '외국어',
                            '인문학': '인문',
                            '자기계발': '자기계발',
                            '잡지': '잡지',
@@ -204,7 +204,10 @@ class AutoBookRecord:
                            '고등학교참고서': '기타',
                            '컴퓨터/모바일': '컴퓨터/IT',
                            }
-        return aladin_to_kyobo[category]
+        try:
+            return aladin_to_kyobo[category]
+        except KeyError:
+            return '알 수 없음'
 
 
 class Book:
