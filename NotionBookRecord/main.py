@@ -116,7 +116,7 @@ class AutoBookRecord:
             else:
                 translator = author.replace('(옮긴이)', '')
 
-        return {'authors': ''.join(author_list), 'translator': translator}
+        return {'authors': ', '.join(author_list), 'translator': translator}
 
     def post_book_info_to_notion(self):
         result = self.request_notion_database_post()
