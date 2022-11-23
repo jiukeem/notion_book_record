@@ -1,3 +1,4 @@
+import sys
 import requests
 import json
 from datetime import datetime
@@ -8,6 +9,7 @@ class AutoBookRecord:
         self.aladin = Aladin()
         self.notion = Notion()
         self.book = None
+        self.timeout_sec = 600
         self.execute_auto_book_record()
 
     def execute_auto_book_record(self):
@@ -29,7 +31,7 @@ class AutoBookRecord:
         self.execute_auto_book_record()
 
     def get_target_book_title(self):
-        title = input('\nplease enter book title: ')
+        title = input_w_timeout('\nplease enter book title: ', self.timeout_sec)
         return title
 
     def get_book_info_list(self, title):
@@ -58,7 +60,7 @@ class AutoBookRecord:
         for book in candidate_book_list_for_print:
             print(book)
         print('\nYou can press \'b\' to go back.')
-        chosen_book_index_str = input('Please enter the number of the book you want to add: ')
+        chosen_book_index_str = input_w_timeout('Please enter the number of the book you want to add: ', self.timeout_sec)
         # ------------------------ printed for user ------------------------
 
         chosen_book_index_num = 0
@@ -70,7 +72,8 @@ class AutoBookRecord:
             if chosen_book_index_str in list(map(str, range(1, len(candidate_book_list) + 1))):
                 chosen_book_index_num = int(chosen_book_index_str)
             else:
-                chosen_book_index_str = input(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
+                chosen_book_index_str = input_w_timeout(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ',
+                                                        self.timeout_sec)
 
         return chosen_book_index_num - 1
 
@@ -226,6 +229,77 @@ class Notion:
         self.request_url = "https://api.notion.com/v1/pages"
         self.authorization_key = "secret_EpOFfpWXo4HZBTGWOFqK3PV7nH69gkXNo9k5rC8f5bX"
         self.database_id = "8c46b8f8ad9d4dd3a299abdf84b5f98f"
+
+
+# https://greenfishblog.tistory.com/257
+def input_timer(prompt, timeout_sec):
+    import subprocess
+    import sys
+    import threading
+    import locale
+
+    class Local:
+        # check if timeout occurred
+        _timeout_occurred = False
+
+        def on_timeout(self, process):
+            self._timeout_occurred = True
+            process.kill()
+            # clear stdin buffer (for linux)
+            # when some keys hit and timeout occurred before enter key press,
+            # that input text passed to next input().
+            # remove stdin buffer.
+            try:
+                import termios
+                termios.tcflush(sys.stdin, termios.TCIFLUSH)
+            except ImportError:
+                # windows, just exit
+                pass
+
+        def input_timer_main(self, prompt_in, timeout_sec_in):
+            # print with no new line
+            print(prompt_in, end="")
+
+            # print prompt_in immediately
+            sys.stdout.flush()
+
+            # new python input process create.
+            # and print it for pass stdout
+            cmd = [sys.executable, '-c', 'print(input())']
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+                timer_proc = threading.Timer(timeout_sec_in, self.on_timeout, [proc])
+                try:
+                    # timer set
+                    timer_proc.start()
+                    stdout, stderr = proc.communicate()
+
+                    # get stdout and trim new line character
+                    result = stdout.decode('UTF-8').strip("\r\n")
+                finally:
+                    # timeout clear
+                    timer_proc.cancel()
+
+            # timeout check
+            if self._timeout_occurred is True:
+                # move the cursor to next line
+                print("")
+                raise TimeoutError
+            return result
+
+    t = Local()
+    return t.input_timer_main(prompt, timeout_sec)
+
+
+def input_w_timeout(str_to_print, timeout_sec, quit=True):
+    try:
+        title = input_timer(str_to_print, timeout_sec)
+        return title
+    except TimeoutError:
+        print(f"\nno input for {timeout_sec / 60} minutes. program exited.")
+        if quit:
+            sys.exit()
+        else:
+            pass
 
 
 # Press the green button in the gutter to run the script.
