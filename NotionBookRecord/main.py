@@ -239,7 +239,6 @@ def input_timer(prompt, timeout_sec):
     import subprocess
     import sys
     import threading
-    import locale
 
     class Local:
         # check if timeout occurred
