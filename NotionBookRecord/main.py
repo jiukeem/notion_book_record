@@ -9,7 +9,6 @@ class AutoBookRecord:
         self.aladin = Aladin()
         self.notion = Notion()
         self.book = None
-        self.timeout_sec = 600
         self.execute_auto_book_record()
 
     def execute_auto_book_record(self):
@@ -31,7 +30,7 @@ class AutoBookRecord:
         self.execute_auto_book_record()
 
     def get_target_book_title(self):
-        title = input_w_timeout('\nplease enter book title: ', self.timeout_sec)
+        title = input_w_timeout('\nplease enter book title: ')
         return title
 
     def get_book_info_list(self, title):
@@ -60,7 +59,7 @@ class AutoBookRecord:
         for book in candidate_book_list_for_print:
             print(book)
         print('\nYou can press \'b\' to go back.')
-        chosen_book_index_str = input_w_timeout('Please enter the number of the book you want to add: ', self.timeout_sec)
+        chosen_book_index_str = input_w_timeout('Please enter the number of the book you want to add: ')
         # ------------------------ printed for user ------------------------
 
         chosen_book_index_num = 0
@@ -72,8 +71,7 @@ class AutoBookRecord:
             if chosen_book_index_str in list(map(str, range(1, len(candidate_book_list) + 1))):
                 chosen_book_index_num = int(chosen_book_index_str)
             else:
-                chosen_book_index_str = input_w_timeout(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ',
-                                                        self.timeout_sec)
+                chosen_book_index_str = input_w_timeout(f'Enter proper number(1 ~ {len(candidate_book_list)}) only: ')
 
         return chosen_book_index_num - 1
 
@@ -166,9 +164,9 @@ class AutoBookRecord:
 
     def notify_result_to_user(self, result):
         if result:
-            print("Successfully done! It might take few seconds.\nPlease check your notion :)")
+            print("\nSuccessfully done! It might take few seconds.\nPlease check your notion :)")
         else:
-            print("Something got wrong. Please try again.")
+            print("\nSomething got wrong. Please try again.")
         self.reset()
 
     def get_correspondence_kyobo_category(self, category):
@@ -292,7 +290,7 @@ def input_timer(prompt, timeout_sec):
     return t.input_timer_main(prompt, timeout_sec)
 
 
-def input_w_timeout(str_to_print, timeout_sec, quit=True):
+def input_w_timeout(str_to_print, timeout_sec=600, quit=True):
     try:
         title = input_timer(str_to_print, timeout_sec)
         return title
