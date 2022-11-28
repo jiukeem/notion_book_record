@@ -298,7 +298,7 @@ def input_w_timeout(str_to_print, timeout_sec, quit=True):
         title = input_timer(str_to_print, timeout_sec)
         return title
     except TimeoutError:
-        print(f"\nno input for {timeout_sec / 60} minutes. program exited.")
+        print(f"\nno input for {timeout_sec / 60:.0f} minutes. program exited.")
         if quit:
             sys.exit()
         else:
